@@ -1,7 +1,7 @@
 "use client";
 
 import { addTodo } from "./actions";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 
 function Title() {
   return (
@@ -29,7 +29,7 @@ function TaskList({ taskList }: { taskList: string[] }) {
 }
 
 export default function TodoList() {
-  const [taskList, formAction] = useFormState(addTodo, []);
+  const [taskList, formAction] = useActionState(addTodo, []);
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
