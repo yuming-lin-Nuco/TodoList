@@ -1,31 +1,54 @@
-"use client";
+  "use client";
 
 import { addTodo } from "./actions";
 import { useActionState } from "react";
 
 function Title() {
-  return (
-    <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>
-  )
-};
+  return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
+} 
 
-function TodoInput({ formAction }: { formAction: (payload: FormData) => void }) {
+function TodoInput({
+  formAction,
+}: {
+  formAction: (payload: FormData) => void;
+}) {
   return (
     <form className="flex items-center gap-2" action={formAction}>
-      <input className="border border-gray-300 px-20 py-1.5" type="text" placeholder="タスクを入力する" name="task" />
-      <button className="border border-gray-300 px-1.5 py-1" type="submit">送信</button>
+      <input
+        className="border border-gray-300 px-8 py-1.5 rounded-sm [field-sizing:content] max-w-[500px]"
+        type="text"
+        placeholder="タスクを入力する"
+        name="task"
+      />
+      <button
+        className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+        type="submit"
+      >
+        送信
+      </button>
     </form>
-  )
+  );
 }
 
 function TaskList({ taskList }: { taskList: string[] }) {
   return (
     <ul className="mt-4">
       {taskList.map((task, index) => (
-        <li key={index}>{task}</li>
+        <li
+          className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
+          key={index}
+        >
+          <input
+            type="checkbox"
+            className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
+          />
+          <div className="break-all">
+            <p>{task}</p>
+          </div>
+        </li>
       ))}
     </ul>
-  )
+  );
 }
 
 export default function TodoList() {
@@ -36,5 +59,5 @@ export default function TodoList() {
       <TodoInput formAction={formAction} />
       <TaskList taskList={taskList} />
     </div>
-  );
+  )
 }
