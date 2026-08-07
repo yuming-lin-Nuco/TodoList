@@ -52,11 +52,11 @@ function TaskList({ taskList }: { taskList: string[] }) {
 }
 
 export default function TodoList() {
-  const [taskList, formAction] = useActionState(addTodo, []);
+  const [taskList, formAction] = useActionState(addTodo, { state: [], error: null });
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
-      <TodoInput formAction={formAction} />
+      <TodoInput formAction={formAction} /> 
       <TaskList taskList={taskList} />
     </div>
   )
