@@ -2,6 +2,7 @@
 
 import { addTodo } from "./actions";
 import { useActionState } from "react";
+import { useEffect } from "react";
 
 function Title() {
   return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
@@ -53,6 +54,11 @@ function TaskList({ taskList }: { taskList: string[] }) {
 
 export default function TodoList() {
   const [state, formAction] = useActionState(addTodo, { taskList: [], error: null });
+  useEffect(() => {
+    if (state.error) {
+      alert(state.error);
+    }
+  }, [state.error]);
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
