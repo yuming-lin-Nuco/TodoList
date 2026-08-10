@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// 區塊 1：指定要產生的 Client 語言（固定寫這樣就好）
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+// 區塊 2：指定資料庫類型與連線位置（固定寫這樣就好）
+datasource db {
+  provider = "sqlite"
+}
+
+// 區塊 3：定義資料表
+model Todo {
+  id        Int @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+}
+
+/*
+在 Prisma 生態系中，資料表的命名慣例是：
+使用「單數型態（Singular）」的「大駝峰命名法（PascalCase）」
+名字應該要能代表 「裡面每一筆資料是什麼」
+*/
+
+/* 
+定義欄位的基本公式是：{欄位名稱} {資料型態} {[欄位屬性/裝飾器]}
+常用屬性裝飾器（Attributes，用 @ 開頭）：
+  @id：告訴 Prisma 這個欄位是主鍵（Primary Key），每筆資料用它做唯一識別。
+  @default(...)：如果新增資料時沒給值，資料庫自動帶入的預設值。
+    autoincrement()：自動遞增數字（1, 2, 3...）
+    now()：自動抓取新增資料時的當下時間
+    false / "預設文字"：指定固定的預設值 
+*/

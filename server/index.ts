@@ -2,8 +2,12 @@ import express from "express";
 import fs from "fs/promises";
 import path from "path";
 import cors from "cors"; // CORS（Cross-Origin Resource Sharing）を有効にするため //オリジン間リソース共有 //跨來源資源共享
+import { PrismaClient } from "@prisma/client";
+
 const app = express();
 app.use(express.json(), cors());
+
+const prisma = new PrismaClient({});
 
 const dataFilePath = path.join(process.cwd(), "todoList.json");
 
@@ -29,11 +33,10 @@ async function saveTodoListToFile(taskList: string[]): Promise<void> {
       "utf-8",
     );
 
-  // JSON.stringify(データ, 置換関数, インデント)
-  // - 第2引数 (null): フィルター（置換関数）は使用せず、すべてのデータをそのまま出力する
-  // - 第3引数 (2): インデント（字下げ）のスペース数を2個にし、ファイルを見やすく整形する
-  
-} catch (error: any) {
+    // JSON.stringify(データ, 置換関数, インデント)
+    // - 第2引数 (null): フィルター（置換関数）は使用せず、すべてのデータをそのまま出力する
+    // - 第3引数 (2): インデント（字下げ）のスペース数を2個にし、ファイルを見やすく整形する
+  } catch (error: any) {
     console.error("エラー：todoList.jsonを書き込めませんでした", error);
     throw new Error("データの書き込み中にエラーが発生しました" + error.message);
   }
