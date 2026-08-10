@@ -6,16 +6,14 @@ interface TodoState {
 }
 
 export async function addTodo(prevState: TodoState, data: FormData): Promise<TodoState> {
-    const task: string = data.get("task")?.toString() || "";
+    const newTask: string = data.get("task")?.toString() || "";
     
-    if (task.trim() === "") {
+    if (newTask.trim() === "") {
         return {
             taskList: prevState.taskList,
             error: "Task cannot be empty"
         };
     }
-
-    const taskList: string[] = [...prevState.taskList, task];
 
     try {
         const response = await fetch("http://localhost:3001/api/todos", {
@@ -23,7 +21,7 @@ export async function addTodo(prevState: TodoState, data: FormData): Promise<Tod
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ taskContent: task }),
+            body: JSON.stringify({ taskContent: newTask }),
         });
 
         if (!response.ok) {
@@ -32,16 +30,16 @@ export async function addTodo(prevState: TodoState, data: FormData): Promise<Tod
                 error: "Failed to add todo to server"
             };
         }
-
+        const updatedTaskList: string[] = await response.json();
         return {
-            taskList: taskList,
+            taskList: updatedTaskList,
             error: null
         };
-        
-    } catch (error) {
+
+    } catch {
         return {
             taskList: prevState.taskList,
             error: "An error occurred to the server"
         };
     }
-}
+}   

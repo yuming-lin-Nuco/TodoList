@@ -1,10 +1,45 @@
 import express from "express";
-
+import fs from "fs/promises";
+import path from "path";
+import cors from "cors"; // CORS（Cross-Origin Resource Sharing）を有効にするため //オリジン間リソース共有 //跨來源資源共享
 const app = express();
-app.use(express.json());
-const todoList: string[] = [];
+app.use(express.json(), cors());
 
-app.listen( 3001, () => {
+const dataFilePath = path.join(process.cwd(), "todoList.json");
+
+async function getTodoListFromFile(): Promise<string[]> {
+  try {
+    const todoListData = await fs.readFile(dataFilePath, "utf-8");
+    return JSON.parse(todoListData);
+  } catch (error: any) {
+    if (error.code === "ENOENT") {
+      // ENOENT はファイルが存在しない場合のエラーコード
+      return []; // プロジェクトが初めて実行される場合、空の配列を返す
+    }
+    console.error("エラー：todoList.jsonを読み取れませんでした", error);
+    throw new Error("データの読み込み中にエラーが発生しました" + error.message);
+  }
+}
+
+async function saveTodoListToFile(taskList: string[]): Promise<void> {
+  try {
+    await fs.writeFile(
+      dataFilePath,
+      JSON.stringify(taskList, null, 2),
+      "utf-8",
+    );
+
+  // JSON.stringify(データ, 置換関数, インデント)
+  // - 第2引数 (null): フィルター（置換関数）は使用せず、すべてのデータをそのまま出力する
+  // - 第3引数 (2): インデント（字下げ）のスペース数を2個にし、ファイルを見やすく整形する
+  
+} catch (error: any) {
+    console.error("エラー：todoList.jsonを書き込めませんでした", error);
+    throw new Error("データの書き込み中にエラーが発生しました" + error.message);
+  }
+}
+
+app.listen(3001, () => {
   console.log("Server is running on port 3001");
 });
 
@@ -12,15 +47,26 @@ app.get("/", (req, res) => {
   res.send("Thanks for using the Todo List!");
 });
 
-app.get("/api/todos", (req, res) => {
+// GET API：ファイルからタスクリストを取得する
+app.get("/api/todos", async (req, res) => {
+  const todoList = await getTodoListFromFile();
   res.json(todoList);
 });
 
-app.post("/api/todos", (req, res) => {
-    const { taskContent } = req.body;
-    if (!taskContent || typeof taskContent !== "string" || taskContent.trim() === "") {
-        return res.status(400).json({ error: "Invalid taskContent content" });
-    }
-    todoList.push(taskContent);
-    res.status(201).json({ message: "Todo added" });
-}); 
+// POST API：タスクを追加し、ファイルに保存する
+app.post("/api/todos", async (req, res) => {
+  const { taskContent } = req.body;
+  if (
+    !taskContent ||
+    typeof taskContent !== "string" ||
+    taskContent.trim() === ""
+  ) {
+    return res.status(400).json({ error: "Invalid taskContent content" });
+  }
+  // jsonファイルは直接新しいデータを追加することはできないため
+  // まずは既存の todoList データを取得し、新しい task を追加してから保存する
+  const todoList = await getTodoListFromFile();
+  todoList.push(taskContent);
+  await saveTodoListToFile(todoList);
+  res.status(201).json(todoList);
+});

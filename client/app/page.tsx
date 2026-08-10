@@ -1,12 +1,11 @@
-  "use client";
+"use client";
 
 import { addTodo } from "./actions";
-import { useActionState } from "react";
-import { useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 function Title() {
   return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
-} 
+}
 
 function TodoInput({
   formAction,
@@ -54,16 +53,32 @@ function TaskList({ taskList }: { taskList: string[] }) {
 
 export default function TodoList() {
   const [state, formAction] = useActionState(addTodo, { taskList: [], error: null });
+  const [initialList, setInitialList] = useState<string[]>([]);
+  const currentTaskList = state.taskList.length > 0 ? state.taskList : initialList;
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/todos")
+      .then((res) => res.json())
+      .then((data: string[]) => {
+        setInitialList(data);
+      })
+      .catch((err) => {
+        console.error("初期データの読み込みに失敗しました", err);
+        alert("初期データの読み込みに失敗しました");
+      });
+  }, []); // ページを開いた時の「最初の1回だけ」実行させるなら、[]と設定します
+
   useEffect(() => {
     if (state.error) {
       alert(state.error);
     }
   }, [state.error]);
+
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
-      <TodoInput formAction={formAction} /> 
-      <TaskList taskList={state.taskList} />
+      <TodoInput formAction={formAction} />
+      <TaskList taskList={currentTaskList} />
     </div>
   )
 }
