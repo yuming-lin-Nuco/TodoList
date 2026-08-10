@@ -17,16 +17,31 @@ export async function addTodo(prevState: TodoState, data: FormData): Promise<Tod
 
     const taskList: string[] = [...prevState.taskList, task];
 
-    await fetch("http://localhost:3001/api/todos", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ taskContent: task }),
-    });
+    try {
+        const response = await fetch("http://localhost:3001/api/todos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ taskContent: task }),
+        });
 
-    return {
-        taskList: taskList,
-        error: null
-    };
+        if (!response.ok) {
+            return {
+                taskList: prevState.taskList,
+                error: "Failed to add todo to server"
+            };
+        }
+
+        return {
+            taskList: taskList,
+            error: null
+        };
+        
+    } catch (error) {
+        return {
+            taskList: prevState.taskList,
+            error: "An error occurred to the server"
+        };
+    }
 }
