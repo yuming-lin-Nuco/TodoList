@@ -1,6 +1,4 @@
 import express from "express";
-// import fs from "fs/promises";
-// import path from "path";
 import cors from "cors"; // CORS（Cross-Origin Resource Sharing）を有効にするため //オリジン間リソース共有 //跨來源資源共享
 import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
@@ -18,21 +16,6 @@ const adapter = new PrismaBetterSqlite3({
 });
 const prisma = new PrismaClient({ adapter });
 
-// const dataFilePath = path.join(process.cwd(), "todoList.json");
-
-// async function getTodoListFromFile(): Promise<string[]> {
-//   try {
-//     const todoListData = await fs.readFile(dataFilePath, "utf-8");
-//     return JSON.parse(todoListData);
-//   } catch (error: any) {
-//     if (error.code === "ENOENT") {
-//       // ENOENT はファイルが存在しない場合のエラーコード
-//       return []; // プロジェクトが初めて実行される場合、空の配列を返す
-//     }
-//     console.error("エラー：todoList.jsonを読み取れませんでした", error);
-//     throw new Error("データの読み込み中にエラーが発生しました" + error.message);
-//   }
-// }
 
 async function getTodoListFromDB() {
   try {
@@ -48,24 +31,7 @@ async function getTodoListFromDB() {
   }
 }
 
-// async function saveTodoListToFile(taskList: string[]): Promise<void> {
-//   try {
-//     await fs.writeFile(
-//       dataFilePath,
-//       JSON.stringify(taskList, null, 2),
-//       "utf-8",
-//     );
-
-//     // JSON.stringify(データ, 置換関数, インデント)
-//     // - 第2引数 (null): フィルター（置換関数）は使用せず、すべてのデータをそのまま出力する
-//     // - 第3引数 (2): インデント（字下げ）のスペース数を2個にし、ファイルを見やすく整形する
-//   } catch (error: any) {
-//     console.error("エラー：todoList.jsonを書き込めませんでした", error);
-//     throw new Error("データの書き込み中にエラーが発生しました" + error.message);
-//   }
-// }
-
-async function saveTodoListToDB(newTask: string) {
+async function saveTodoToDB(newTask: string) {
   try {
     await prisma.todo.create({
       data: {
@@ -80,17 +46,50 @@ async function saveTodoListToDB(newTask: string) {
   }
 }
 
+async function delTodoFromDB(todoID: number) {
+  try {
+    await prisma.todo.delete({
+      where: {
+        id: todoID,
+      },
+    });
+  } catch (error: any) {
+    console.error("エラー：データベースのデータ削除はできませんでした", error);
+    throw new Error(
+      "データベースのデータ削除にエラーが発生しました" + error.message,
+    );
+  }
+}
+
+async function updateTodoInDB(todoID: number, newTaskContent: string) {
+  try {
+    await prisma.todo.update({
+      where: {
+        id: todoID,
+      },
+      data: {
+        content: newTaskContent,
+      }
+    });
+  } catch (error: any) {
+    console.error("エラー：データベースのデータ編集はできませんでした", error);
+    throw new Error(
+      "データベースのデータ編集にエラーが発生しました" + error.message,
+    )
+  }
+}
+
 app.get("/", (req, res) => {
   res.send("Thanks for using the Todo List!");
 });
 
-// GET API：ファイルからタスクリストを取得する
+// GET API：データベースからタスクリストを取得する
 app.get("/api/todos", async (req, res) => {
   const todoList = await getTodoListFromDB();
   res.json(todoList);
 });
 
-// POST API：タスクを追加し、ファイルに保存する
+// POST API：タスクを追加し、データベースに保存する
 app.post("/api/todos", async (req, res) => {
   const { taskContent } = req.body;
   if (
@@ -100,9 +99,36 @@ app.post("/api/todos", async (req, res) => {
   ) {
     return res.status(400).json({ error: "Invalid taskContent content" });
   }
-  await saveTodoListToDB(taskContent);
+  await saveTodoToDB(taskContent);
   const currentTodoList = await getTodoListFromDB();
   res.status(201).json(currentTodoList);
+});
+
+// DELETE API：データベースからタスクリストを取得する
+app.delete("/api/todos/:id", async (req, res) => {
+  const todoId = Number(req.params.id); //req.params の戻り値は string なので数値に変換します
+  await delTodoFromDB(todoId);
+  res.sendStatus(204);
+});
+
+// PATCH API：タスクを編集し、データベースに保存する
+app.patch("/api/todos/:id", async (req, res) => {
+  const todoId = Number(req.params.id); //req.params の戻り値は string なので数値に変換します
+  if (Number.isNaN(todoId) === true) {
+    return res.status(400).json({ error: "Invalid ID" });
+  }
+  const { taskContent } = req.body;
+
+  if (
+    !taskContent ||
+    typeof taskContent !== "string" ||
+    taskContent.trim() === ""
+  ) {
+    return res.status(400).json({ error: "Invalid taskContent content" });
+  }
+  await updateTodoInDB(todoId, taskContent);
+  const currentTodoList = await getTodoListFromDB();
+  res.status(200).json(currentTodoList);
 });
 
 app.listen(3001, () => {
