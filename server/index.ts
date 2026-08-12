@@ -16,13 +16,14 @@ const adapter = new PrismaBetterSqlite3({
 });
 const prisma = new PrismaClient({ adapter });
 
-
 async function getTodoListFromDB() {
   try {
     const todoListDataInDB = await prisma.todo.findMany();
-    const todoList: string[] = todoListDataInDB.map((todo) => todo.content);
-    return todoList;
-
+    const todos = todoListDataInDB.map((todo) => ({
+      id: todo.id,
+      content: todo.content,
+    }));
+    return todos;
   } catch (error: any) {
     console.error("エラー：データベースを読み取れませんでした", error);
     throw new Error(
@@ -69,13 +70,13 @@ async function updateTodoInDB(todoID: number, newTaskContent: string) {
       },
       data: {
         content: newTaskContent,
-      }
+      },
     });
   } catch (error: any) {
     console.error("エラー：データベースのデータ編集はできませんでした", error);
     throw new Error(
       "データベースのデータ編集にエラーが発生しました" + error.message,
-    )
+    );
   }
 }
 

@@ -30,20 +30,26 @@ function TodoInput({
   );
 }
 
-function TaskList({ taskList }: { taskList: string[] }) {
+interface Todo {
+  id: number;
+  content: string;
+}
+
+function TaskList({todos} : {todos: Todo[]}) {
   return (
     <ul className="mt-4">
-      {taskList.map((task, index) => (
+      {
+      todos.map((todo) => (
         <li
           className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
-          key={index}
+          key={todo.id}
         >
           <input
             type="checkbox"
             className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
           />
           <div className="break-all">
-            <p>{task}</p>
+            <p>{todo.content}</p>
           </div>
         </li>
       ))}
@@ -52,14 +58,14 @@ function TaskList({ taskList }: { taskList: string[] }) {
 }
 
 export default function TodoList() {
-  const [state, formAction] = useActionState(addTodo, { taskList: [], error: null });
-  const [initialList, setInitialList] = useState<string[]>([]);
+  const [state, formAction] = useActionState(addTodo, { todos: [], error: null });
+  const [initialList, setInitialList] = useState<Todo[]>([]);
   const currentTaskList = state.taskList.length > 0 ? state.taskList : initialList;
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
-      .then((data: string[]) => {
+      .then((data: Todo[]) => {
         setInitialList(data);
       })
       .catch((err) => {
@@ -78,7 +84,7 @@ export default function TodoList() {
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
       <TodoInput formAction={formAction} />
-      <TaskList taskList={currentTaskList} />
+      <TaskList todos={currentTaskList} />
     </div>
   )
 }

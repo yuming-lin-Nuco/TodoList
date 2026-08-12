@@ -1,7 +1,11 @@
 "use server";
 
+interface Todo {
+  id: number;
+  content: string;
+}
 interface TodoState {
-  taskList: string[];
+  todos: Todo[];
   error: string | null;
 }
 
