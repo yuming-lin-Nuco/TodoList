@@ -2,12 +2,21 @@ import express from "express";
 import fs from "fs/promises";
 import path from "path";
 import cors from "cors"; // CORS（Cross-Origin Resource Sharing）を有効にするため //オリジン間リソース共有 //跨來源資源共享
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "./generated/prisma/client.js";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import "dotenv/config";
 
 const app = express();
 app.use(express.json(), cors());
 
-const prisma = new PrismaClient({});
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not defined");
+}
+const adapter = new PrismaBetterSqlite3({
+  url: databaseUrl,
+});
+const prisma = new PrismaClient({ adapter });
 
 const dataFilePath = path.join(process.cwd(), "todoList.json");
 
