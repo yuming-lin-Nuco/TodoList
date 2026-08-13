@@ -58,7 +58,7 @@ export async function deleteTodo(todoId: number) {
     if (!response.ok) {
       throw new Error("Failed to delete todo on the server.");
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(
         "An error occurred while communicating with the server." +
@@ -68,5 +68,6 @@ export async function deleteTodo(todoId: number) {
         },
       );
     }
+    throw new Error("An error occurred while communicating with the server.");
   }
 }

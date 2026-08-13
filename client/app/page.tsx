@@ -36,13 +36,15 @@ interface Todo {
 }
 
 function TaskList({ todos }: { todos: Todo[] }) {
-  const handleDelete = (id: number) => {
-    console.log(id);
+  const [taskList, setTaskList] = useState(todos);
+  const handleDelete = async (id: number) => {
+    await deleteTodo(id);
+    setTaskList(...)
   };
-
+  
   return (
     <ul className="mt-4">
-      {todos.map((todo) => (
+      {taskList.map((todo) => (
         <li
           className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
           key={todo.id}
