@@ -24,11 +24,18 @@ async function getTodoListFromDB() {
       content: todo.content,
     }));
     return todos;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("エラー：データベースを読み取れませんでした", error);
-    throw new Error(
-      "データベースの読み込み中にエラーが発生しました" + error.message,
-    );
+    if (error instanceof Error) {
+      throw new Error(
+        "データベースの読み込み中にエラーが発生しました" + error.message,
+        { cause: error },
+      );
+    }
+
+    throw new Error("データベースの読み込み中にエラーが発生しました", {
+      cause: error,
+    });
   }
 }
 
@@ -39,11 +46,14 @@ async function saveTodoToDB(newTask: string) {
         content: newTask,
       },
     });
-  } catch (error: any) {
-    console.error("エラー：デーラベーすに書き込めませんでした", error);
-    throw new Error(
-      "データベースに書き込み中にエラーが発生しました" + error.message,
-    );
+  } catch (error: unknown) {
+    console.error("エラー：デーラベースに書き込めませんでした", error);
+    if (error instanceof Error) {
+      throw new Error(
+        "データベースに書き込み中にエラーが発生しました" + error.message,
+        { cause: error },
+      );
+    }
   }
 }
 
@@ -54,11 +64,14 @@ async function delTodoFromDB(todoID: number) {
         id: todoID,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("エラー：データベースのデータ削除はできませんでした", error);
-    throw new Error(
-      "データベースのデータ削除にエラーが発生しました" + error.message,
-    );
+    if (error instanceof Error) {
+      throw new Error(
+        "データベースのデータ削除にエラーが発生しました" + error.message,
+        { cause: error },
+      );
+    }
   }
 }
 
@@ -72,11 +85,14 @@ async function updateTodoInDB(todoID: number, newTaskContent: string) {
         content: newTaskContent,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("エラー：データベースのデータ編集はできませんでした", error);
-    throw new Error(
-      "データベースのデータ編集にエラーが発生しました" + error.message,
-    );
+    if (error instanceof Error) {
+      throw new Error(
+        "データベースのデータ編集にエラーが発生しました" + error.message,
+        { cause: error },
+      );
+    }
   }
 }
 
