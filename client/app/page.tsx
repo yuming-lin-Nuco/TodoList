@@ -62,8 +62,7 @@ export default function TodoList() {
     error: null,
   });
   const [initialList, setInitialList] = useState<Todo[]>([]);
-  const currentTaskList =
-    state.taskList.length > 0 ? state.taskList : initialList;
+  const currentTaskList = state.todos.length > 0 ? state.todos : initialList;
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
