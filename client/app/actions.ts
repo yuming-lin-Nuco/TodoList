@@ -17,7 +17,7 @@ export async function addTodo(
 
   if (newTask.trim() === "") {
     return {
-      taskList: prevState.taskList,
+      todos: prevState.todos,
       error: "Task cannot be empty",
     };
   }
@@ -33,18 +33,18 @@ export async function addTodo(
 
     if (!response.ok) {
       return {
-        taskList: prevState.taskList,
+        todos: prevState.todos,
         error: "Failed to add todo to server",
       };
     }
-    const updatedTaskList: string[] = await response.json();
+    const updatedTaskList: Todo[] = await response.json();
     return {
-      taskList: updatedTaskList,
+      todos: updatedTaskList,
       error: null,
     };
   } catch {
     return {
-      taskList: prevState.taskList,
+      todos: prevState.todos,
       error: "An error occurred to the server",
     };
   }
