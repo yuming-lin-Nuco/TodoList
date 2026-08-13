@@ -18,7 +18,7 @@ export async function addTodo(
   if (newTask.trim() === "") {
     return {
       todos: prevState.todos,
-      error: "Task cannot be empty",
+      error: "Task cannot be empty.",
     };
   }
 
@@ -34,7 +34,7 @@ export async function addTodo(
     if (!response.ok) {
       return {
         todos: prevState.todos,
-        error: "Failed to add todo to server",
+        error: "Failed to add todo to the server.",
       };
     }
     const updatedTaskList: Todo[] = await response.json();
@@ -45,7 +45,28 @@ export async function addTodo(
   } catch {
     return {
       todos: prevState.todos,
-      error: "An error occurred to the server",
+      error: "An error occurred while communicating with the server.",
     };
+  }
+}
+
+export async function deleteTodo(todoId: number) {
+  try {
+    const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to delete todo on the server.");
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(
+        "An error occurred while communicating with the server." +
+          error.message,
+        {
+          cause: error,
+        },
+      );
+    }
   }
 }

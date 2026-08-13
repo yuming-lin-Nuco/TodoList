@@ -36,6 +36,10 @@ interface Todo {
 }
 
 function TaskList({ todos }: { todos: Todo[] }) {
+  const handleDelete = (id: number) => {
+    console.log(id);
+  };
+
   return (
     <ul className="mt-4">
       {todos.map((todo) => (
@@ -49,6 +53,17 @@ function TaskList({ todos }: { todos: Todo[] }) {
           />
           <div className="break-all">
             <p>{todo.content}</p>
+          </div>
+          <div>
+            {/* <button onClick={() => {handleEdit(todo.id)}}>編集</button> */}
+            <button
+              onClick={() => {
+                handleDelete(todo.id);
+              }}
+              className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+            >
+              削除
+            </button>
           </div>
         </li>
       ))}
