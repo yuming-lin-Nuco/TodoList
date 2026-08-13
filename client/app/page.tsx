@@ -35,11 +35,10 @@ interface Todo {
   content: string;
 }
 
-function TaskList({todos} : {todos: Todo[]}) {
+function TaskList({ todos }: { todos: Todo[] }) {
   return (
     <ul className="mt-4">
-      {
-      todos.map((todo) => (
+      {todos.map((todo) => (
         <li
           className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
           key={todo.id}
@@ -58,9 +57,13 @@ function TaskList({todos} : {todos: Todo[]}) {
 }
 
 export default function TodoList() {
-  const [state, formAction] = useActionState(addTodo, { todos: [], error: null });
+  const [state, formAction] = useActionState(addTodo, {
+    todos: [],
+    error: null,
+  });
   const [initialList, setInitialList] = useState<Todo[]>([]);
-  const currentTaskList = state.taskList.length > 0 ? state.taskList : initialList;
+  const currentTaskList =
+    state.taskList.length > 0 ? state.taskList : initialList;
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
@@ -86,5 +89,5 @@ export default function TodoList() {
       <TodoInput formAction={formAction} />
       <TaskList todos={currentTaskList} />
     </div>
-  )
+  );
 }
