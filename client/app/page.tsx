@@ -97,6 +97,10 @@ export default function TodoList() {
   }, []); // ページを開いた時の「最初の1回だけ」実行させるなら、[]と設定します
 
   useEffect(() => {
+    setTaskList(state.todos);
+  }, [state.todos]);
+
+  useEffect(() => {
     if (state.error) {
       alert(state.error);
     }
