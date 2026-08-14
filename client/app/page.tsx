@@ -1,7 +1,8 @@
 "use client";
 
-import { addTodo } from "./actions";
 import { useActionState, useEffect, useState } from "react";
+import { addTodo } from "./actions";
+import { deleteTodo } from "./actions";
 
 function Title() {
   return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
@@ -35,16 +36,16 @@ interface Todo {
   content: string;
 }
 
-function TaskList({ todos }: { todos: Todo[] }) {
-  const [taskList, setTaskList] = useState(todos);
-  const handleDelete = async (id: number) => {
-    await deleteTodo(id);
-    setTaskList(...)
-  };
-  
+function TaskList({
+  todos,
+  onDelete,
+}: {
+  todos: Todo[];
+  onDelete: (id: number) => void;
+}) {
   return (
     <ul className="mt-4">
-      {taskList.map((todo) => (
+      {todos.map((todo) => (
         <li
           className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
           key={todo.id}
@@ -59,9 +60,7 @@ function TaskList({ todos }: { todos: Todo[] }) {
           <div>
             {/* <button onClick={() => {handleEdit(todo.id)}}>編集</button> */}
             <button
-              onClick={() => {
-                handleDelete(todo.id);
-              }}
+              onClick={() => onDelete(todo.id)}
               className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
             >
               削除
@@ -78,14 +77,18 @@ export default function TodoList() {
     todos: [],
     error: null,
   });
-  const [initialList, setInitialList] = useState<Todo[]>([]);
-  const currentTaskList = state.todos.length > 0 ? state.todos : initialList;
+
+  const [taskList, setTaskList] = useState<Todo[]>([]);
+  const handleDelete = async (id: number) => {
+    const resultState = await deleteTodo(id);
+    setTaskList(resultState.todos);
+  };
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
       .then((data: Todo[]) => {
-        setInitialList(data);
+        setTaskList(data);
       })
       .catch((err) => {
         console.error("初期データの読み込みに失敗しました", err);
@@ -103,7 +106,7 @@ export default function TodoList() {
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
       <TodoInput formAction={formAction} />
-      <TaskList todos={currentTaskList} />
+      <TaskList todos={taskList} onDelete={handleDelete} />
     </div>
   );
 }

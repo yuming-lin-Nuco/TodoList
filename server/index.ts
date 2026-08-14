@@ -123,9 +123,12 @@ app.post("/api/todos", async (req, res) => {
 
 // DELETE API：データベースからタスクリストを取得する
 app.delete("/api/todos/:id", async (req, res) => {
+  console.log("===== DELETE API START =====");
+  console.log("DELETE ID:", req.params.id);
   const todoId = Number(req.params.id); //req.params の戻り値は string なので数値に変換します
   await delTodoFromDB(todoId);
-  res.sendStatus(204);
+  const currentTodoList = await getTodoListFromDB();
+  res.status(200).json(currentTodoList);
 });
 
 // PATCH API：タスクを編集し、データベースに保存する
