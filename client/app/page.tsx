@@ -84,11 +84,6 @@ function todosReducer(currentTodos: Todo[], action: TodoAction) {
 }
 
 export default function TodoList() {
-  // const [state, formAction] = useActionState(addTodo, {
-  //   todos: [],
-  //   error: null,
-  // });
-
   const [todos, setTodos] = useState<Todo[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,8 +91,6 @@ export default function TodoList() {
     todos,
     todosReducer,
   );
-
-  // const [taskList, setTaskList] = useState<Todo[]>([]);
 
   const handleAdd = async (formData: FormData) => {
     const taskContent = formData.get("task")?.toString() ?? "";
