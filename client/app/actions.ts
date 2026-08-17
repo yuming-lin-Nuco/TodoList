@@ -10,14 +10,14 @@ interface TodoState {
 }
 
 export async function addTodo(
-  prevState: TodoState,
+  prevTodos: Todo[],
   data: FormData,
 ): Promise<TodoState> {
   const newTask: string = data.get("task")?.toString() || "";
 
   if (newTask.trim() === "") {
     return {
-      todos: prevState.todos,
+      todos: prevTodos,
       error: "Task cannot be empty.",
     };
   }
@@ -33,7 +33,7 @@ export async function addTodo(
 
     if (!response.ok) {
       return {
-        todos: prevState.todos,
+        todos: prevTodos,
         error: "Failed to add todo to the server.",
       };
     }
@@ -44,36 +44,35 @@ export async function addTodo(
     };
   } catch {
     return {
-      todos: prevState.todos,
+      todos: prevTodos,
       error: "An error occurred while communicating with the server.",
     };
   }
 }
 
-export async function deleteTodo(todoId: number): Promise<TodoState> {
+export async function deleteTodo(
+  prevTodos: Todo[],
+  todoId: number,
+): Promise<TodoState> {
   try {
     const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
       method: "DELETE",
     });
     if (!response.ok) {
-      throw new Error("Failed to delete todo on the server.");
+      return {
+        todos: prevTodos,
+        error: "Failed to delete todo on the server.",
+      };
     }
     const updatedTaskList: Todo[] = await response.json();
     return {
       todos: updatedTaskList,
       error: null,
     };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(
-        "An error occurred while communicating with the server." +
-          error.message,
-        {
-          cause: error,
-        },
-      );
-    }
-
-    throw new Error("An error occurred while communicating with the server.");
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
   }
 }

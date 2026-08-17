@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useOptimistic, useState } from "react";
+import { useEffect, useOptimistic, useState, startTransition } from "react";
 import { addTodo } from "./actions";
 import { deleteTodo } from "./actions";
 
@@ -70,10 +70,9 @@ function TaskList({
       ))}
     </ul>
   );
+}
 
-type TodoAction =
-  | { type: "add"; todo: Todo }
-  | { type: "delete"; id: number };
+type TodoAction = { type: "add"; todo: Todo } | { type: "delete"; id: number };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
   switch (action.type) {
@@ -88,14 +87,16 @@ export default function TodoList() {
   // const [state, formAction] = useActionState(addTodo, {
   //   todos: [],
   //   error: null,
-  // }); 
+  // });
 
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [error, setError] = useState<string |null >(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [optimisticTodos, updateOptimisticTodos] = useOptimistic(todos, todosReducer);
+  const [optimisticTodos, updateOptimisticTodos] = useOptimistic(
+    todos,
+    todosReducer,
+  );
 
-  
   // const [taskList, setTaskList] = useState<Todo[]>([]);
 
   const handleAdd = async (formData: FormData) => {
@@ -104,11 +105,11 @@ export default function TodoList() {
     // サーバーがまだ本物の ID を発行していないため、楽観的な更新に使うために、一時的な仮の ID を作る
     // Date.now() は「1970年からの経過ミリ秒数」を返す大きな正の数値なので、
     // マイナスをつけることで、DB の本物の ID(正の整数)と絶対に被らないようにする
-    const tempTodo: Todo = { id: -Date.now() , content: taskContent };
+    const tempTodo: Todo = { id: -Date.now(), content: taskContent };
 
     updateOptimisticTodos({ type: "add", todo: tempTodo });
-    
-    const result = await addTodo({ todos, error: null }, formData);
+
+    const result = await addTodo(todos, formData);
 
     if (result.error) {
       setError(result.error);
@@ -117,18 +118,21 @@ export default function TodoList() {
 
     setError(null);
     setTodos(result.todos);
-  }
+  };
 
-  const handleDelete = async (id: number) => {
-    const resultState = await deleteTodo(id);
-    setTaskList(resultState.todos);
+  const handleDelete = (id: number) => {
+    startTransition(async () => {
+      updateOptimisticTodos({ type: "delete", id });
+      const result = await deleteTodo(todos, id);
+      setTodos(result.todos);
+    });
   };
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
       .then((data: Todo[]) => {
-        setTaskList(data);
+        setTodos(data);
       })
       .catch((err) => {
         console.error("初期データの読み込みに失敗しました", err);
@@ -137,20 +141,16 @@ export default function TodoList() {
   }, []); // ページを開いた時の「最初の1回だけ」実行させるなら、[]と設定します
 
   useEffect(() => {
-    setTaskList(state.todos);
-  }, [state.todos]);
-
-  useEffect(() => {
-    if (state.error) {
-      alert(state.error);
+    if (error) {
+      alert(error);
     }
-  }, [state.error]);
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
-      <TodoInput formAction={formAction} />
-      <TaskList todos={taskList} onDelete={handleDelete} />
+      <TodoInput formAction={handleAdd} />
+      <TaskList todos={optimisticTodos} onDelete={handleDelete} />
     </div>
   );
 }
