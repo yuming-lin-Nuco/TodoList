@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useOptimistic, useState } from "react";
 import { addTodo } from "./actions";
 import { deleteTodo } from "./actions";
 
@@ -70,15 +70,55 @@ function TaskList({
       ))}
     </ul>
   );
+
+type TodoAction =
+  | { type: "add"; todo: Todo }
+  | { type: "delete"; id: number };
+
+function todosReducer(currentTodos: Todo[], action: TodoAction) {
+  switch (action.type) {
+    case "add":
+      return [...currentTodos, action.todo];
+    case "delete":
+      return currentTodos.filter((todo) => todo.id !== action.id);
+  }
 }
 
 export default function TodoList() {
-  const [state, formAction] = useActionState(addTodo, {
-    todos: [],
-    error: null,
-  });
+  // const [state, formAction] = useActionState(addTodo, {
+  //   todos: [],
+  //   error: null,
+  // }); 
 
-  const [taskList, setTaskList] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [error, setError] = useState<string |null >(null);
+
+  const [optimisticTodos, updateOptimisticTodos] = useOptimistic(todos, todosReducer);
+
+  
+  // const [taskList, setTaskList] = useState<Todo[]>([]);
+
+  const handleAdd = async (formData: FormData) => {
+    const taskContent = formData.get("task")?.toString() ?? "";
+
+    // サーバーがまだ本物の ID を発行していないため、楽観的な更新に使うために、一時的な仮の ID を作る
+    // Date.now() は「1970年からの経過ミリ秒数」を返す大きな正の数値なので、
+    // マイナスをつけることで、DB の本物の ID(正の整数)と絶対に被らないようにする
+    const tempTodo: Todo = { id: -Date.now() , content: taskContent };
+
+    updateOptimisticTodos({ type: "add", todo: tempTodo });
+    
+    const result = await addTodo({ todos, error: null }, formData);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setError(null);
+    setTodos(result.todos);
+  }
+
   const handleDelete = async (id: number) => {
     const resultState = await deleteTodo(id);
     setTaskList(resultState.todos);
