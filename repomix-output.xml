@@ -174,31 +174,6 @@ prek.toml
 <files>
 This section contains the contents of the repository's files.
 
-<file path="client/app/actions.test.ts">
-import { describe, it, expect } from "vitest";
-import { addTodo } from "./actions";
-
-// describe(標題字串, 函式)：分組容器，裡面可以放很多個 it(...)，把「同一功能的相關測試」歸類在一起
-// 標題字串: 這組測試(或這個測試案例)的名稱
-// 函式: 測試邏輯
-describe("addTodo", () => {
-  // it(標題字串, 函式)：一個具體、單一的測試案例，裡面才是真正執行 Arrange–Act–Assert 的地方
-  it("空白輸入時應該回傳錯誤訊息", async () => {
-    // Arrange: 準備輸入資料
-    const prevState = { todos: [], error: null };
-
-    const formData = new FormData();
-    formData.append("task", "");
-
-    // Act: 執行我們要測試的函式
-    const result = await addTodo(prevState, formData);
-
-    // Assert: 驗證結果符合預期
-    expect(result.error).toBe("Task cannot be empty.");
-  });
-});
-</file>
-
 <file path="client/app/globals.css">
 @import "tailwindcss";
 
@@ -11652,6 +11627,36 @@ hooks = [
 ]
 </file>
 
+<file path="client/app/actions.test.ts">
+import { describe, it, expect } from "vitest";
+import { addTodo } from "./actions";
+
+interface Todo {
+  id: number;
+  content: string;
+}
+
+// describe(標題字串, 函式)：分組容器，裡面可以放很多個 it(...)，把「同一功能的相關測試」歸類在一起
+// 標題字串: 這組測試(或這個測試案例)的名稱
+// 函式: 測試邏輯
+describe("addTodo", () => {
+  // it(標題字串, 函式)：一個具體、單一的測試案例，裡面才是真正執行 Arrange–Act–Assert 的地方
+  it("空白輸入時應該回傳錯誤訊息", async () => {
+    // Arrange: 準備輸入資料
+    const prevTodo: Todo[] = [];
+
+    const formData = new FormData();
+    formData.append("task", "");
+
+    // Act: 執行我們要測試的函式
+    const result = await addTodo(prevTodo, formData);
+
+    // Assert: 驗證結果符合預期
+    expect(result.error).toBe("Task cannot be empty.");
+  });
+});
+</file>
+
 <file path="client/app/layout.tsx">
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -11823,14 +11828,14 @@ interface TodoState {
 }
 
 export async function addTodo(
-  prevState: TodoState,
+  prevTodos: Todo[],
   data: FormData,
 ): Promise<TodoState> {
   const newTask: string = data.get("task")?.toString() || "";
 
   if (newTask.trim() === "") {
     return {
-      todos: prevState.todos,
+      todos: prevTodos,
       error: "Task cannot be empty.",
     };
   }
@@ -11846,7 +11851,7 @@ export async function addTodo(
 
     if (!response.ok) {
       return {
-        todos: prevState.todos,
+        todos: prevTodos,
         error: "Failed to add todo to the server.",
       };
     }
@@ -11857,37 +11862,36 @@ export async function addTodo(
     };
   } catch {
     return {
-      todos: prevState.todos,
+      todos: prevTodos,
       error: "An error occurred while communicating with the server.",
     };
   }
 }
 
-export async function deleteTodo(todoId: number): Promise<TodoState> {
+export async function deleteTodo(
+  prevTodos: Todo[],
+  todoId: number,
+): Promise<TodoState> {
   try {
     const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
       method: "DELETE",
     });
     if (!response.ok) {
-      throw new Error("Failed to delete todo on the server.");
+      return {
+        todos: prevTodos,
+        error: "Failed to delete todo on the server.",
+      };
     }
     const updatedTaskList: Todo[] = await response.json();
     return {
       todos: updatedTaskList,
       error: null,
     };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(
-        "An error occurred while communicating with the server." +
-          error.message,
-        {
-          cause: error,
-        },
-      );
-    }
-
-    throw new Error("An error occurred while communicating with the server.");
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
   }
 }
 </file>
@@ -12054,7 +12058,7 @@ app.listen(3001, () => {
 <file path="client/app/page.tsx">
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useOptimistic, useState, startTransition } from "react";
 import { addTodo } from "./actions";
 import { deleteTodo } from "./actions";
 
@@ -12112,7 +12116,14 @@ function TaskList({
             <p>{todo.content}</p>
           </div>
           <div>
-            {/* <button onClick={() => {handleEdit(todo.id)}}>編集</button> */}
+            <button
+              onClick={() => {
+                handleEdit(todo.id);
+              }}
+              className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+            >
+              編集
+            </button>
             <button
               onClick={() => onDelete(todo.id)}
               className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
@@ -12126,23 +12137,60 @@ function TaskList({
   );
 }
 
-export default function TodoList() {
-  const [state, formAction] = useActionState(addTodo, {
-    todos: [],
-    error: null,
-  });
+type TodoAction = { type: "add"; todo: Todo } | { type: "delete"; id: number };
 
-  const [taskList, setTaskList] = useState<Todo[]>([]);
-  const handleDelete = async (id: number) => {
-    const resultState = await deleteTodo(id);
-    setTaskList(resultState.todos);
+function todosReducer(currentTodos: Todo[], action: TodoAction) {
+  switch (action.type) {
+    case "add":
+      return [...currentTodos, action.todo];
+    case "delete":
+      return currentTodos.filter((todo) => todo.id !== action.id);
+  }
+}
+
+export default function TodoList() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const [optimisticTodos, updateOptimisticTodos] = useOptimistic(
+    todos,
+    todosReducer,
+  );
+
+  const handleAdd = async (formData: FormData) => {
+    const taskContent = formData.get("task")?.toString() ?? "";
+
+    // サーバーがまだ本物の ID を発行していないため、楽観的な更新に使うために、一時的な仮の ID を作る
+    // Date.now() は「1970年からの経過ミリ秒数」を返す大きな正の数値なので、
+    // マイナスをつけることで、DB の本物の ID(正の整数)と絶対に被らないようにする
+    const tempTodo: Todo = { id: -Date.now(), content: taskContent };
+
+    updateOptimisticTodos({ type: "add", todo: tempTodo });
+
+    const result = await addTodo(todos, formData);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setError(null);
+    setTodos(result.todos);
+  };
+
+  const handleDelete = (id: number) => {
+    startTransition(async () => {
+      updateOptimisticTodos({ type: "delete", id });
+      const result = await deleteTodo(todos, id);
+      setTodos(result.todos);
+    });
   };
 
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
       .then((data: Todo[]) => {
-        setTaskList(data);
+        setTodos(data);
       })
       .catch((err) => {
         console.error("初期データの読み込みに失敗しました", err);
@@ -12151,20 +12199,16 @@ export default function TodoList() {
   }, []); // ページを開いた時の「最初の1回だけ」実行させるなら、[]と設定します
 
   useEffect(() => {
-    setTaskList(state.todos);
-  }, [state.todos]);
-
-  useEffect(() => {
-    if (state.error) {
-      alert(state.error);
+    if (error) {
+      alert(error);
     }
-  }, [state.error]);
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
-      <TodoInput formAction={formAction} />
-      <TaskList todos={taskList} onDelete={handleDelete} />
+      <TodoInput formAction={handleAdd} />
+      <TaskList todos={optimisticTodos} onDelete={handleDelete} />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useOptimistic, useState, startTransition } from "react";
-import { addTodo } from "./actions";
-import { deleteTodo } from "./actions";
+import { addTodo, deleteTodo, editTodo } from "./actions";
 
 function Title() {
   return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
@@ -39,40 +38,87 @@ interface Todo {
 function TaskList({
   todos,
   onDelete,
+  editingId,
+  onStartEdit,
+  onSaveEdit,
 }: {
   todos: Todo[];
   onDelete: (id: number) => void;
+  editingId: number | null;
+  onStartEdit: (id: number) => void;
+  onSaveEdit: (id: number, newContent: string) => void;
 }) {
   return (
     <ul className="mt-4">
-      {todos.map((todo) => (
-        <li
-          className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
-          key={todo.id}
-        >
-          <input
-            type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
-          />
-          <div className="break-all">
-            <p>{todo.content}</p>
-          </div>
-          <div>
-            {/* <button onClick={() => {handleEdit(todo.id)}}>編集</button> */}
-            <button
-              onClick={() => onDelete(todo.id)}
-              className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
-            >
-              削除
-            </button>
-          </div>
-        </li>
-      ))}
+      {todos.map((todo) => {
+        const handleSave = (
+          event:
+            | React.FocusEvent<HTMLInputElement>
+            | React.KeyboardEvent<HTMLInputElement>,
+        ) => {
+          onSaveEdit(todo.id, event.currentTarget.value);
+        };
+
+        return (
+          <li
+            className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
+            key={todo.id}
+          >
+            <input
+              type="checkbox"
+              className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
+            />
+            <div className="break-all">
+              {editingId === todo.id ? (
+                <input
+                  defaultValue={todo.content}
+                  autoFocus
+                  className="border border-gray-300 px-2 py-1 rounded-sm"
+                  onBlur={handleSave}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleSave(event);
+                    }
+                  }}
+                />
+              ) : (
+                <p
+                  onClick={() => {
+                    onStartEdit(todo.id);
+                  }}
+                  className="cursor-pointer"
+                >
+                  {todo.content}
+                </p>
+              )}
+            </div>
+            <div>
+              {/* <button
+                onClick={() => {
+                  onSaveEdit(todo.id, newcontent);
+                }}
+                className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+              >
+                編集
+              </button> */}
+              <button
+                onClick={() => onDelete(todo.id)}
+                className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+              >
+                削除
+              </button>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-type TodoAction = { type: "add"; todo: Todo } | { type: "delete"; id: number };
+type TodoAction =
+  | { type: "add"; todo: Todo }
+  | { type: "delete"; id: number }
+  | { type: "edit"; editId: number; newContent: string };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
   switch (action.type) {
@@ -80,13 +126,19 @@ function todosReducer(currentTodos: Todo[], action: TodoAction) {
       return [...currentTodos, action.todo];
     case "delete":
       return currentTodos.filter((todo) => todo.id !== action.id);
+    case "edit":
+      return currentTodos.map((todo) =>
+        todo.id === action.editId
+          ? { ...todo, content: action.newContent }
+          : todo,
+      );
   }
 }
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [error, setError] = useState<string | null>(null);
-
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [optimisticTodos, updateOptimisticTodos] = useOptimistic(
     todos,
     todosReducer,
@@ -121,6 +173,15 @@ export default function TodoList() {
     });
   };
 
+  const handleEditSave = (id: number, newContent: string) => {
+    startTransition(async () => {
+      updateOptimisticTodos({ type: "edit", editId: id, newContent });
+      const result = await editTodo(todos, id, newContent);
+      setTodos(result.todos);
+      setEditingId(null);
+    });
+  };
+
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
@@ -143,7 +204,13 @@ export default function TodoList() {
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
       <TodoInput formAction={handleAdd} />
-      <TaskList todos={optimisticTodos} onDelete={handleDelete} />
+      <TaskList
+        todos={optimisticTodos}
+        onDelete={handleDelete}
+        editingId={editingId}
+        onStartEdit={setEditingId}
+        onSaveEdit={handleEditSave}
+      />
     </div>
   );
 }

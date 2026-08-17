@@ -76,3 +76,35 @@ export async function deleteTodo(
     };
   }
 }
+
+export async function editTodo(
+  prevTodos: Todo[],
+  todoId: number,
+  newContent: string,
+): Promise<TodoState> {
+  try {
+    const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taskContent: newContent }),
+    });
+    if (!response.ok) {
+      return {
+        todos: prevTodos,
+        error: "Failed to edit todo on the server.",
+      };
+    }
+    const updatedTaskList: Todo[] = await response.json();
+    return {
+      todos: updatedTaskList,
+      error: null,
+    };
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
+  }
+}
