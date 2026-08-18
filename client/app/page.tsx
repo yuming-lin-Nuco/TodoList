@@ -48,7 +48,12 @@ function TaskList({
   onDelete: (id: number, content: string) => void;
   editingId: number | null;
   onStartEdit: (id: number) => void;
-  onSaveEdit: (id: number, newContent: string) => void;
+  onSaveEdit: (
+    id: number,
+    newContent: string,
+    isDone: boolean,
+    dueDate: Date | null,
+  ) => void;
 }) {
   return (
     <ul className="mt-4">
@@ -58,7 +63,12 @@ function TaskList({
             | React.FocusEvent<HTMLInputElement>
             | React.KeyboardEvent<HTMLInputElement>,
         ) => {
-          onSaveEdit(todo.id, event.currentTarget.value);
+          onSaveEdit(
+            todo.id,
+            event.currentTarget.value,
+            todo.isDone,
+            todo.dueDate,
+          );
         };
 
         return (
@@ -137,7 +147,12 @@ function todosReducer(currentTodos: Todo[], action: TodoAction) {
     case "edit":
       return currentTodos.map((todo) =>
         todo.id === action.editId
-          ? { ...todo, content: action.newContent }
+          ? {
+              ...todo,
+              content: action.newContent,
+              isDone: action.isDone,
+              dueDate: action.dueDate,
+            }
           : todo,
       );
   }
@@ -197,7 +212,13 @@ export default function TodoList() {
     dueDate: Date | null,
   ) => {
     startTransition(async () => {
-      updateOptimisticTodos({ type: "edit", editId: id, newContent });
+      updateOptimisticTodos({
+        type: "edit",
+        editId: id,
+        newContent,
+        isDone,
+        dueDate,
+      });
       const result = await editTodo(todos, id, newContent, isDone, dueDate);
       setTodos(result.todos);
       setEditingId(null);
