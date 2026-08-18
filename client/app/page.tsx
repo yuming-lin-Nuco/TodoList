@@ -43,7 +43,7 @@ function TaskList({
   onSaveEdit,
 }: {
   todos: Todo[];
-  onDelete: (id: number) => void;
+  onDelete: (id: number, content: string) => void;
   editingId: number | null;
   onStartEdit: (id: number) => void;
   onSaveEdit: (id: number, newContent: string) => void;
@@ -102,7 +102,7 @@ function TaskList({
                 編集
               </button> */}
               <button
-                onClick={() => onDelete(todo.id)}
+                onClick={() => onDelete(todo.id, todo.content)}
                 className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
               >
                 削除
@@ -165,12 +165,16 @@ export default function TodoList() {
     setTodos(result.todos);
   };
 
-  const handleDelete = (id: number) => {
-    startTransition(async () => {
-      updateOptimisticTodos({ type: "delete", id });
-      const result = await deleteTodo(todos, id);
-      setTodos(result.todos);
-    });
+  const handleDelete = (id: number, content: string) => {
+    const isConfirmed = confirm(`「${content}」を削除しますか？`);
+
+    if (isConfirmed) {
+      startTransition(async () => {
+        updateOptimisticTodos({ type: "delete", id });
+        const result = await deleteTodo(todos, id);
+        setTodos(result.todos);
+      });
+    }
   };
 
   const handleEditSave = (id: number, newContent: string) => {
