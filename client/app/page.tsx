@@ -68,7 +68,7 @@ function TaskList({
               type="checkbox"
               className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
             />
-            <div className="break-all">
+            <div className="break-all flex-1">
               {editingId === todo.id ? (
                 <input
                   defaultValue={todo.content}
