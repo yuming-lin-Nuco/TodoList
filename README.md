@@ -143,3 +143,28 @@ cd Todolist/client
 npm run dev
 ```
 💡 起動後、ブラウザで http://localhost:3000 にアクセスしてください。
+
+## 🔄 データベースのスキーマを変更する場合
+
+`prisma/schema.prisma` にカラムを追加・変更した際は、以下の手順で反映してください。
+
+### 1. マイグレーションを作成・適用する
+
+```bash
+npx prisma migrate dev --name 変更内容がわかる名前
+```
+
+このコマンドは、以下を自動的に行います：
+
+- `schema.prisma` の変更内容を検出
+- migration ファイル（SQL）を生成し、`prisma/migrations/` に保存
+- `dev.db` に変更を適用
+- Prisma Client の型定義を再生成
+
+### 2. 型定義が更新されていない場合
+
+エディタ上で型定義が反映されていないように見える場合は、以下を単体で実行してください（データベースには影響しません）。
+
+```bash
+npx prisma generate
+```

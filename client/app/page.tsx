@@ -33,6 +33,8 @@ function TodoInput({
 interface Todo {
   id: number;
   content: string;
+  done: boolean;
+  doItAt: Date | null;
 }
 
 function TaskList({
@@ -150,7 +152,12 @@ export default function TodoList() {
     // サーバーがまだ本物の ID を発行していないため、楽観的な更新に使うために、一時的な仮の ID を作る
     // Date.now() は「1970年からの経過ミリ秒数」を返す大きな正の数値なので、
     // マイナスをつけることで、DB の本物の ID(正の整数)と絶対に被らないようにする
-    const tempTodo: Todo = { id: -Date.now(), content: taskContent };
+    const tempTodo: Todo = {
+      id: -Date.now(),
+      content: taskContent,
+      done: false,
+      doItAt: null,
+    };
 
     updateOptimisticTodos({ type: "add", todo: tempTodo });
 

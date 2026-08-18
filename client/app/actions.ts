@@ -3,6 +3,8 @@
 interface Todo {
   id: number;
   content: string;
+  done: boolean;
+  doItAt: Date | null;
 }
 interface TodoState {
   todos: Todo[];
