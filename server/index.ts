@@ -22,6 +22,8 @@ async function getTodoListFromDB() {
     const todos = todoListDataInDB.map((todo) => ({
       id: todo.id,
       content: todo.content,
+      done: todo.done,
+      doItAt: todo.doItAt,
     }));
     return todos;
   } catch (error: unknown) {
