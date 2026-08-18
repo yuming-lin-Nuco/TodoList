@@ -169,6 +169,7 @@ server/
   tsconfig.json
 .gitignore
 prek.toml
+README.md
 </directory_structure>
 
 <files>
@@ -11689,6 +11690,142 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 }
 </file>
 
+<file path="README.md">
+# 🏗️ プロジェクト概要
+練習するために作った TodoList
+```
+Todolist
+├── client # フロントエンド
+└── server # バックエンド
+```
+
+# ⚙️ 開発環境の構築
+
+### 使用言語: TypeScript
+
+### 必須ツール
+
+#### 　共通 / 開発環境：
+
+- **Git**：コードのバージョン管理
+- **Node.js**：サーバーサイドの JavaScript 実行環境
+- **prek**：Git Hooks 管理ツール（commit する時に、自動的に ESLint、Prettier、Vitest を実行する）
+
+#### 　フロントエンド：
+
+- **Next.js**：React に基づいた Web フレームワーク
+- **Vitest**：テストのフレームワーク
+- **ESLint**：コードの品質チェック・構文エラーの検知（潜在的なバグの防止）
+- **Prettier**：コードの自動整形（チームのコーディングスタイルを統一）
+
+#### 　バックエンド：
+
+- **Express**：バックエンドや API を作るための　Web フレームワーク
+- **Vitest**：テストのフレームワーク
+- **Prisma**：ORM（Object-Relational Mapping）を用いて、TypeScriptでデータベースを操作する
+- **ESLint**：コードの品質チェック・構文エラーの検知（潜在的なバグの防止）
+- **Prettier**：コードの自動整形（チームのコーディングスタイルを統一）
+
+<br>
+
+## 📥 必須ツールのセットアップ
+
+### 1. Git のインストール
+
+[Git 公式サイト](https://git-scm.com/)からダウンロードしてインストールしてください。
+
+インストール後、ターミナルで確認：
+
+```bash
+git --version
+```
+
+---
+
+### 2. Node.js のインストール
+
+[Node.js 公式サイト](https://nodejs.org/)から **LTS 版**をダウンロードしてください。
+
+インストール後、ターミナルで確認：
+
+```bash
+node --version
+npm --version
+```
+
+---
+
+### 3. prek のインストール
+
+macOS の場合は Homebrew でインストールしてください：
+
+インストール後、ターミナルで確認：
+
+```bash
+brew install prek
+```
+
+<br>
+
+# 🌱 初回セットアップ
+
+### 1. リポジトリのクローン
+
+プロジェクトに参加する際、最初に一度だけリポジトリをローカルに clone します。
+
+```bash
+git clone https://github.com/yuming-lin-Nuco/TodoList.git
+cd TodoList
+
+# 初回のみ、ユーザー情報を設定：
+git config --local user.name "あなたの名前"
+git config --local user.email "あなたの GitHub メールアドレス"
+```
+
+### 2. Git Hooks の有効化
+
+必須ツールを全てダウンロードしたら、プロジェクトにインストール
+```bash
+prek install
+```
+
+### 3. フロントエンドのセットアップ
+
+```bash
+cd client
+npm i
+```
+
+### 4. バックエンドのセットアップ
+
+```bash
+cd ../server
+npm i
+npx prisma generate
+# schema.prisma から TypeScript の型定義と Client を生成
+```
+
+<br>
+
+# 🚀 アプリケーションの起動方法
+
+### 1. バックエンド
+
+```bash
+npm run dev
+```
+💡 起動後、バックエンドサーバーは http://localhost:3001 で動作します。
+
+### 2. フロントエンド
+
+新しいターミナルを開き、client ディレクトリに移動して起動します
+```bash
+cd Todolist/client
+npm run dev
+```
+💡 起動後、ブラウザで http://localhost:3000 にアクセスしてください。
+</file>
+
 <file path="client/package.json">
 {
   "name": "todolist",
@@ -11811,87 +11948,6 @@ server/todoList.json
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.10"
-  }
-}
-</file>
-
-<file path="client/app/actions.ts">
-"use server";
-
-interface Todo {
-  id: number;
-  content: string;
-}
-interface TodoState {
-  todos: Todo[];
-  error: string | null;
-}
-
-export async function addTodo(
-  prevTodos: Todo[],
-  data: FormData,
-): Promise<TodoState> {
-  const newTask: string = data.get("task")?.toString() || "";
-
-  if (newTask.trim() === "") {
-    return {
-      todos: prevTodos,
-      error: "Task cannot be empty.",
-    };
-  }
-
-  try {
-    const response = await fetch("http://localhost:3001/api/todos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ taskContent: newTask }),
-    });
-
-    if (!response.ok) {
-      return {
-        todos: prevTodos,
-        error: "Failed to add todo to the server.",
-      };
-    }
-    const updatedTaskList: Todo[] = await response.json();
-    return {
-      todos: updatedTaskList,
-      error: null,
-    };
-  } catch {
-    return {
-      todos: prevTodos,
-      error: "An error occurred while communicating with the server.",
-    };
-  }
-}
-
-export async function deleteTodo(
-  prevTodos: Todo[],
-  todoId: number,
-): Promise<TodoState> {
-  try {
-    const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      return {
-        todos: prevTodos,
-        error: "Failed to delete todo on the server.",
-      };
-    }
-    const updatedTaskList: Todo[] = await response.json();
-    return {
-      todos: updatedTaskList,
-      error: null,
-    };
-  } catch {
-    return {
-      todos: prevTodos,
-      error: "An error occurred while communicating with the server.",
-    };
   }
 }
 </file>
@@ -12055,12 +12111,124 @@ app.listen(3001, () => {
 });
 </file>
 
+<file path="client/app/actions.ts">
+"use server";
+
+interface Todo {
+  id: number;
+  content: string;
+}
+interface TodoState {
+  todos: Todo[];
+  error: string | null;
+}
+
+export async function addTodo(
+  prevTodos: Todo[],
+  data: FormData,
+): Promise<TodoState> {
+  const newTask: string = data.get("task")?.toString() || "";
+
+  if (newTask.trim() === "") {
+    return {
+      todos: prevTodos,
+      error: "Task cannot be empty.",
+    };
+  }
+
+  try {
+    const response = await fetch("http://localhost:3001/api/todos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taskContent: newTask }),
+    });
+
+    if (!response.ok) {
+      return {
+        todos: prevTodos,
+        error: "Failed to add todo to the server.",
+      };
+    }
+    const updatedTaskList: Todo[] = await response.json();
+    return {
+      todos: updatedTaskList,
+      error: null,
+    };
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
+  }
+}
+
+export async function deleteTodo(
+  prevTodos: Todo[],
+  todoId: number,
+): Promise<TodoState> {
+  try {
+    const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      return {
+        todos: prevTodos,
+        error: "Failed to delete todo on the server.",
+      };
+    }
+    const updatedTaskList: Todo[] = await response.json();
+    return {
+      todos: updatedTaskList,
+      error: null,
+    };
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
+  }
+}
+
+export async function editTodo(
+  prevTodos: Todo[],
+  todoId: number,
+  newContent: string,
+): Promise<TodoState> {
+  try {
+    const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taskContent: newContent }),
+    });
+    if (!response.ok) {
+      return {
+        todos: prevTodos,
+        error: "Failed to edit todo on the server.",
+      };
+    }
+    const updatedTaskList: Todo[] = await response.json();
+    return {
+      todos: updatedTaskList,
+      error: null,
+    };
+  } catch {
+    return {
+      todos: prevTodos,
+      error: "An error occurred while communicating with the server.",
+    };
+  }
+}
+</file>
+
 <file path="client/app/page.tsx">
 "use client";
 
 import { useEffect, useOptimistic, useState, startTransition } from "react";
-import { addTodo } from "./actions";
-import { deleteTodo } from "./actions";
+import { addTodo, deleteTodo, editTodo } from "./actions";
 
 function Title() {
   return <h1 className="text-4xl font-bold mt-4 p-4 ">Todo List</h1>;
@@ -12097,47 +12265,87 @@ interface Todo {
 function TaskList({
   todos,
   onDelete,
+  editingId,
+  onStartEdit,
+  onSaveEdit,
 }: {
   todos: Todo[];
   onDelete: (id: number) => void;
+  editingId: number | null;
+  onStartEdit: (id: number) => void;
+  onSaveEdit: (id: number, newContent: string) => void;
 }) {
   return (
     <ul className="mt-4">
-      {todos.map((todo) => (
-        <li
-          className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
-          key={todo.id}
-        >
-          <input
-            type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
-          />
-          <div className="break-all">
-            <p>{todo.content}</p>
-          </div>
-          <div>
-            <button
-              onClick={() => {
-                handleEdit(todo.id);
-              }}
-              className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
-            >
-              編集
-            </button>
-            <button
-              onClick={() => onDelete(todo.id)}
-              className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
-            >
-              削除
-            </button>
-          </div>
-        </li>
-      ))}
+      {todos.map((todo) => {
+        const handleSave = (
+          event:
+            | React.FocusEvent<HTMLInputElement>
+            | React.KeyboardEvent<HTMLInputElement>,
+        ) => {
+          onSaveEdit(todo.id, event.currentTarget.value);
+        };
+
+        return (
+          <li
+            className="flex items-center gap-1.5 border border-gray-300 p-3 rounded-lg mb-1 bg-gray-100 w-100"
+            key={todo.id}
+          >
+            <input
+              type="checkbox"
+              className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
+            />
+            <div className="break-all">
+              {editingId === todo.id ? (
+                <input
+                  defaultValue={todo.content}
+                  autoFocus
+                  className="border border-gray-300 px-2 py-1 rounded-sm"
+                  onBlur={handleSave}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleSave(event);
+                    }
+                  }}
+                />
+              ) : (
+                <p
+                  onClick={() => {
+                    onStartEdit(todo.id);
+                  }}
+                  className="cursor-pointer"
+                >
+                  {todo.content}
+                </p>
+              )}
+            </div>
+            <div>
+              {/* <button
+                onClick={() => {
+                  onSaveEdit(todo.id, newcontent);
+                }}
+                className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+              >
+                編集
+              </button> */}
+              <button
+                onClick={() => onDelete(todo.id)}
+                className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
+              >
+                削除
+              </button>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-type TodoAction = { type: "add"; todo: Todo } | { type: "delete"; id: number };
+type TodoAction =
+  | { type: "add"; todo: Todo }
+  | { type: "delete"; id: number }
+  | { type: "edit"; editId: number; newContent: string };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
   switch (action.type) {
@@ -12145,13 +12353,19 @@ function todosReducer(currentTodos: Todo[], action: TodoAction) {
       return [...currentTodos, action.todo];
     case "delete":
       return currentTodos.filter((todo) => todo.id !== action.id);
+    case "edit":
+      return currentTodos.map((todo) =>
+        todo.id === action.editId
+          ? { ...todo, content: action.newContent }
+          : todo,
+      );
   }
 }
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [error, setError] = useState<string | null>(null);
-
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [optimisticTodos, updateOptimisticTodos] = useOptimistic(
     todos,
     todosReducer,
@@ -12186,6 +12400,15 @@ export default function TodoList() {
     });
   };
 
+  const handleEditSave = (id: number, newContent: string) => {
+    startTransition(async () => {
+      updateOptimisticTodos({ type: "edit", editId: id, newContent });
+      const result = await editTodo(todos, id, newContent);
+      setTodos(result.todos);
+      setEditingId(null);
+    });
+  };
+
   useEffect(() => {
     fetch("http://localhost:3001/api/todos")
       .then((res) => res.json())
@@ -12208,7 +12431,13 @@ export default function TodoList() {
     <div className="min-h-screen flex flex-col items-center p-4">
       <Title />
       <TodoInput formAction={handleAdd} />
-      <TaskList todos={optimisticTodos} onDelete={handleDelete} />
+      <TaskList
+        todos={optimisticTodos}
+        onDelete={handleDelete}
+        editingId={editingId}
+        onStartEdit={setEditingId}
+        onSaveEdit={handleEditSave}
+      />
     </div>
   );
 }

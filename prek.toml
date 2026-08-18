@@ -28,7 +28,7 @@ hooks = [
         name = "Server Prettier",
         language = "system",
         entry = "npm --prefix server exec prettier -- --write",
-        files = "^server/",
+        files = "^server/.*\\.(ts|tsx|js|json|css|md)$",
         pass_filenames = true,
     },
     {
@@ -36,7 +36,23 @@ hooks = [
         name = "Client Prettier",
         language = "system",
         entry = "npm --prefix client exec prettier -- --write",
-        files = "^client/",
+        files = "^client/.*\\.(ts|tsx|js|jsx|json|css|md)$",
         pass_filenames = true,
+    },
+    {
+        id = "server-test",
+        name = "Server Vitest",
+        language = "system",
+        entry = "npm --prefix server exec vitest -- run",
+        files = "^server/",
+        pass_filenames = false,
+    },
+    {
+        id = "client-test",
+        name = "Client Vitest",
+        language = "system",
+        entry = "npm --prefix client exec vitest -- run",
+        files = "^client/",
+        pass_filenames = false,
     },
 ]

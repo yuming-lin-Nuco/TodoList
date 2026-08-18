@@ -1,7 +1,7 @@
 # 🏗️ プロジェクト概要
 練習するために作った TodoList
 ```
-todolist
+Todolist
 ├── client # フロントエンド
 └── server # バックエンド
 ```
@@ -66,11 +66,16 @@ npm --version
 
 macOS の場合は Homebrew でインストールしてください：
 
-インストール後、ターミナルで確認：
-
 ```bash
 brew install prek
 ```
+
+インストール後、ターミナルで確認：
+
+```bash
+prek --version
+```
+
 
 <br>
 
@@ -82,49 +87,59 @@ brew install prek
 
 ```bash
 git clone https://github.com/yuming-lin-Nuco/TodoList.git
+cd TodoList
 
 # 初回のみ、ユーザー情報を設定：
-cd TodoList
 git config --local user.name "あなたの名前"
 git config --local user.email "あなたの GitHub メールアドレス"
 ```
 
-### 2. 共通ツールの初期設定
+### 2. Git Hooks の有効化
 
 必須ツールを全てダウンロードしたら、プロジェクトにインストール
 ```bash
 prek install
 ```
 
-### 3. フロントエンドの環境構築
+### 3. フロントエンドのセットアップ
 
 ```bash
 cd client
-
-#主要フレームワークのインストール
-
-npm install next react react-dom
-
-#開発およびテストツールのインストール
-
-npm install -D vitest eslint prettier eslint-config-next 
-
-#`-D`（または `--save-dev`）オプションは、開発環境のみで必要なパッケージとしてインストールすることを意味します
+npm i
 ```
 
-### 4. バックエンドの環境構築
+### 4. バックエンドのセットアップ
 
 ```bash
 cd ../server
+npm i
 
-# 主要パッケージのインストール
-npm install express @prisma/client
+# .env ファイルを作成し、DATABASE_URL(データベースの接続先)を設定
+echo 'DATABASE_URL="file:./dev.db"' > .env
 
-# 開発およびテストツールのインストール
-npm install -D vitest eslint prettier prisma typescript @types/node @types/express ts-node
+# 既存のマイグレーションを適用し、dev.db(SQLite データベース)を作成
+npx prisma migrate deploy
 
-# Prisma の初期化（初回のみ実行）
-npx prisma init
+# schema.prisma から TypeScript の型定義と Client を生成
+npx prisma generate
 ```
 
 <br>
+
+# 🚀 アプリケーションの起動方法
+
+### 1. バックエンド
+
+```bash
+npm run dev
+```
+💡 起動後、バックエンドサーバーは http://localhost:3001 で動作します。
+
+### 2. フロントエンド
+
+新しいターミナルを開き、client ディレクトリに移動して起動します
+```bash
+cd Todolist/client
+npm run dev
+```
+💡 起動後、ブラウザで http://localhost:3000 にアクセスしてください。
