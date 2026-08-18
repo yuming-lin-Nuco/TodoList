@@ -77,7 +77,12 @@ async function delTodoFromDB(todoID: number) {
   }
 }
 
-async function updateTodoInDB(todoID: number, newTaskContent: string) {
+async function updateTodoInDB(
+  todoID: number,
+  newTaskContent: string,
+  isDone: boolean,
+  doItAt: Date | null,
+) {
   try {
     await prisma.todo.update({
       where: {
@@ -85,6 +90,8 @@ async function updateTodoInDB(todoID: number, newTaskContent: string) {
       },
       data: {
         content: newTaskContent,
+        done: isDone,
+        doItAt: doItAt,
       },
     });
   } catch (error: unknown) {
@@ -139,7 +146,7 @@ app.patch("/api/todos/:id", async (req, res) => {
   if (Number.isNaN(todoId) === true) {
     return res.status(400).json({ error: "Invalid ID" });
   }
-  const { taskContent } = req.body;
+  const { taskContent, isDone, doItAt } = req.body;
 
   if (
     !taskContent ||
@@ -148,7 +155,7 @@ app.patch("/api/todos/:id", async (req, res) => {
   ) {
     return res.status(400).json({ error: "Invalid taskContent content" });
   }
-  await updateTodoInDB(todoId, taskContent);
+  await updateTodoInDB(todoId, taskContent, isDone, doItAt);
   const currentTodoList = await getTodoListFromDB();
   res.status(200).json(currentTodoList);
 });

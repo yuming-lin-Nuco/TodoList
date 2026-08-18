@@ -83,6 +83,8 @@ export async function editTodo(
   prevTodos: Todo[],
   todoId: number,
   newContent: string,
+  isDone: boolean,
+  doItAt: Date | null,
 ): Promise<TodoState> {
   try {
     const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
@@ -90,7 +92,11 @@ export async function editTodo(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ taskContent: newContent }),
+      body: JSON.stringify({
+        taskContent: newContent,
+        isDone: isDone,
+        doItAt: doItAt,
+      }),
     });
     if (!response.ok) {
       return {

@@ -120,7 +120,13 @@ function TaskList({
 type TodoAction =
   | { type: "add"; todo: Todo }
   | { type: "delete"; id: number }
-  | { type: "edit"; editId: number; newContent: string };
+  | {
+      type: "edit";
+      editId: number;
+      newContent: string;
+      isDone: boolean;
+      doItAt: Date | null;
+    };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
   switch (action.type) {
@@ -184,10 +190,15 @@ export default function TodoList() {
     }
   };
 
-  const handleEditSave = (id: number, newContent: string) => {
+  const handleEditSave = (
+    id: number,
+    newContent: string,
+    isDone: boolean,
+    doItAt: Date | null,
+  ) => {
     startTransition(async () => {
       updateOptimisticTodos({ type: "edit", editId: id, newContent });
-      const result = await editTodo(todos, id, newContent);
+      const result = await editTodo(todos, id, newContent, isDone, doItAt);
       setTodos(result.todos);
       setEditingId(null);
     });
