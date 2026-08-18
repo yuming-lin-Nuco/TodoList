@@ -33,8 +33,8 @@ function TodoInput({
 interface Todo {
   id: number;
   content: string;
-  done: boolean;
-  doItAt: Date | null;
+  isDone: boolean;
+  dueDate: Date | null;
 }
 
 function TaskList({
@@ -125,7 +125,7 @@ type TodoAction =
       editId: number;
       newContent: string;
       isDone: boolean;
-      doItAt: Date | null;
+      dueDate: Date | null;
     };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
@@ -161,8 +161,8 @@ export default function TodoList() {
     const tempTodo: Todo = {
       id: -Date.now(),
       content: taskContent,
-      done: false,
-      doItAt: null,
+      isDone: false,
+      dueDate: null,
     };
 
     updateOptimisticTodos({ type: "add", todo: tempTodo });
@@ -194,11 +194,11 @@ export default function TodoList() {
     id: number,
     newContent: string,
     isDone: boolean,
-    doItAt: Date | null,
+    dueDate: Date | null,
   ) => {
     startTransition(async () => {
       updateOptimisticTodos({ type: "edit", editId: id, newContent });
-      const result = await editTodo(todos, id, newContent, isDone, doItAt);
+      const result = await editTodo(todos, id, newContent, isDone, dueDate);
       setTodos(result.todos);
       setEditingId(null);
     });

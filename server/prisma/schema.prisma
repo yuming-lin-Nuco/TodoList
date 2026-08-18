@@ -18,8 +18,8 @@ model Todo {
   id        Int @id @default(autoincrement())
   content   String
   createdAt DateTime @default(now())
-  done      Boolean @default(false)
-  doItAt    DateTime?
+  isDone    Boolean @default(false)
+  dueDate   DateTime?
 }
 
 /*

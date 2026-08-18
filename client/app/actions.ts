@@ -3,8 +3,8 @@
 interface Todo {
   id: number;
   content: string;
-  done: boolean;
-  doItAt: Date | null;
+  isDone: boolean;
+  dueDate: Date | null;
 }
 interface TodoState {
   todos: Todo[];
@@ -84,7 +84,7 @@ export async function editTodo(
   todoId: number,
   newContent: string,
   isDone: boolean,
-  doItAt: Date | null,
+  dueDate: Date | null,
 ): Promise<TodoState> {
   try {
     const response = await fetch(`http://localhost:3001/api/todos/${todoId}`, {
@@ -95,7 +95,7 @@ export async function editTodo(
       body: JSON.stringify({
         taskContent: newContent,
         isDone: isDone,
-        doItAt: doItAt,
+        dueDate: dueDate,
       }),
     });
     if (!response.ok) {
