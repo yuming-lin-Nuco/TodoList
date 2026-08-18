@@ -15,7 +15,7 @@ function TodoInput({
   return (
     <form className="flex items-center gap-2" action={formAction}>
       <input
-        className="border border-gray-300 px-8 py-1.5 rounded-sm [field-sizing:content] max-w-[500px]"
+        className="border border-gray-300 px-8 py-1.5 rounded-sm field-sizing:content max-w-125"
         type="text"
         placeholder="タスクを入力する"
         name="task"
@@ -201,7 +201,7 @@ export default function TodoList() {
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4">
+    <main className="min-h-screen flex flex-col items-center p-4">
       <Title />
       <TodoInput formAction={handleAdd} />
       <TaskList
@@ -211,6 +211,6 @@ export default function TodoList() {
         onStartEdit={setEditingId}
         onSaveEdit={handleEditSave}
       />
-    </div>
+    </main>
   );
 }
