@@ -70,6 +70,16 @@ function TaskList({
             todo.dueDate,
           );
         };
+        const handleToggleIsDone = (
+          event: React.ChangeEvent<HTMLInputElement>,
+        ) => {
+          onSaveEdit(
+            todo.id,
+            todo.content,
+            event.currentTarget.checked,
+            todo.dueDate,
+          );
+        };
 
         return (
           <li
@@ -78,6 +88,8 @@ function TaskList({
           >
             <input
               type="checkbox"
+              checked={todo.isDone}
+              onChange={handleToggleIsDone}
               className="form-checkbox h-5 w-5 text-blue-500 cursor-pointer"
             />
             <div className="break-all flex-1">
@@ -105,14 +117,6 @@ function TaskList({
               )}
             </div>
             <div>
-              {/* <button
-                onClick={() => {
-                  onSaveEdit(todo.id, newcontent);
-                }}
-                className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
-              >
-                編集
-              </button> */}
               <button
                 onClick={() => onDelete(todo.id, todo.content)}
                 className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
@@ -205,7 +209,7 @@ export default function TodoList() {
     }
   };
 
-  const handleEditSave = (
+  const handleSaveEdit = (
     id: number,
     newContent: string,
     isDone: boolean,
@@ -252,7 +256,7 @@ export default function TodoList() {
         onDelete={handleDelete}
         editingId={editingId}
         onStartEdit={setEditingId}
-        onSaveEdit={handleEditSave}
+        onSaveEdit={handleSaveEdit}
       />
     </main>
   );
