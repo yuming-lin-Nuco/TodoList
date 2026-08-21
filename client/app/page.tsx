@@ -46,24 +46,51 @@ function TaskList({
   todos,
   onDelete,
   editingId,
-  onStartEdit,
+  editingDueTimeId,
+  onStartEditContent: onStartEdit,
   onSaveEdit,
+  onStartEditDueTime,
 }: {
   todos: Todo[];
   onDelete: (id: number, content: string) => void;
   editingId: number | null;
-  onStartEdit: (id: number) => void;
+  editingDueTimeId: number | null;
+  onStartEditContent: (id: number) => void;
   onSaveEdit: (
     id: number,
     newContent: string,
     isDone: boolean,
     dueTime: Date | null,
   ) => void;
+  onStartEditDueTime:(id: number)=> void;
 }) {
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    weekday: "narrow",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+  // Date の Input の defaultValue は「年-月-日T時:分」というフォーマットが必要です
+  const formatDateForInput = (date: Date | null): string => {
+    if (date === null) return "";
+    const d = new Date(date);
+
+    const year = String(d.getFullYear());
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   return (
     <ul className="mt-4">
       {todos.map((todo) => {
-        const handleSave = (
+        const handleSaveContent = (
           event:
             | React.FocusEvent<HTMLInputElement>
             | React.KeyboardEvent<HTMLInputElement>,
@@ -85,6 +112,18 @@ function TaskList({
             todo.dueTime,
           );
         };
+        const handleSaveDueTime = (
+          event:
+            | React.FocusEvent<HTMLInputElement>
+            | React.KeyboardEvent<HTMLInputElement>,
+        ) => {
+          onSaveEdit(
+            todo.id,
+            todo.content,
+            todo.isDone,
+            new Date(event.currentTarget.value),
+          );
+        };
 
         return (
           <li
@@ -99,26 +138,52 @@ function TaskList({
             />
             <div className="break-all flex-1">
               {editingId === todo.id ? (
-                <input
-                  defaultValue={todo.content}
-                  autoFocus
-                  className="border border-gray-300 px-2 py-1 rounded-sm"
-                  onBlur={handleSave}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      handleSave(event);
-                    }
-                  }}
-                />
+                  <input
+                    defaultValue={todo.content}
+                    autoFocus
+                    className="border border-gray-300 px-2 py-1 rounded-sm"
+                    onBlur={handleSaveContent}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        handleSaveContent(event);
+                      }
+                    }}
+                  />
+                  {/* <input
+                    defaultValue={formatDateForInput(todo.dueTime)}
+                    type="datetime-local"
+                    className="border border-gray-300 px-2 py-1 rounded-sm"
+                    onBlur={handleSaveDueTime}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        handleSaveDueTime(event);
+                      }
+                    }}
+                  ></input> */}a
               ) : (
-                <p
-                  onClick={() => {
-                    onStartEdit(todo.id);
-                  }}
-                  className="cursor-pointer"
-                >
-                  {todo.content}
-                </p>
+                <div>
+                  <p
+                    onClick={() => {
+                      onStartEdit(todo.id);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    {todo.content}
+                  </p>
+                  {todo.dueTime && (
+                    <span
+                      onClick={() => {
+                        onStartEditDueTime(todo.id);
+                      }}
+                      className="cursor-pointer text-sm text-gray-500 "
+                    >
+                      {new Date(todo.dueTime).toLocaleString(
+                        undefined,
+                        dateOptions,
+                      )}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
             <div>
@@ -171,6 +236,7 @@ export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingDueTimeId, setEditingDueTimeId] = useState<number | null>(null);
   const [optimisticTodos, updateOptimisticTodos] = useOptimistic(
     todos,
     todosReducer,
@@ -233,6 +299,7 @@ export default function TodoList() {
       const result = await editTodo(todos, id, newContent, isDone, dueTime);
       setTodos(result.todos);
       setEditingId(null);
+      setEditingDueTimeId(null);
     });
   };
 
@@ -262,7 +329,9 @@ export default function TodoList() {
         todos={optimisticTodos}
         onDelete={handleDelete}
         editingId={editingId}
-        onStartEdit={setEditingId}
+        editingDueTimeId={editingDueTimeId}
+        onStartEditContent={setEditingId}
+        onStartEditDueTime={setEditingDueTimeId}
         onSaveEdit={handleSaveEdit}
       />
     </main>
