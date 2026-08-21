@@ -41,7 +41,7 @@ async function getTodoListFromDB() {
   }
 }
 
-async function addTodoToDB(newTask: string, dueTime: Date) {
+async function addTodoToDB(newTask: string, dueTime: Date | null) {
   try {
     await prisma.todo.create({
       data: {
