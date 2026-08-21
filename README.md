@@ -151,7 +151,9 @@ npm run dev
 ### 1. マイグレーションを作成・適用する
 
 ```bash
+cd server
 npx prisma migrate dev --name 変更内容がわかる名前
+e.g. "npx prisma migrate dev --name change_dueDate_to_dueTime"
 ```
 
 このコマンドは、以下を自動的に行います：
@@ -161,9 +163,9 @@ npx prisma migrate dev --name 変更内容がわかる名前
 - `dev.db` に変更を適用
 - Prisma Client の型定義を再生成
 
-### 2. 型定義が更新されていない場合
+### 2. schema.prisma の内容をもとに、TypeScript が理解できる型定義（Prisma Client）を再生成する
 
-エディタ上で型定義が反映されていないように見える場合は、以下を単体で実行してください（データベースには影響しません）。
+Prisma v7 以上の場合は、以下を単体で実行してください（データベースには影響しません）。
 
 ```bash
 npx prisma generate

@@ -34,7 +34,7 @@ interface Todo {
   id: number;
   content: string;
   isDone: boolean;
-  dueDate: Date | null;
+  dueTime: Date | null;
 }
 
 function TaskList({
@@ -52,7 +52,7 @@ function TaskList({
     id: number,
     newContent: string,
     isDone: boolean,
-    dueDate: Date | null,
+    dueTime: Date | null,
   ) => void;
 }) {
   return (
@@ -67,7 +67,7 @@ function TaskList({
             todo.id,
             event.currentTarget.value,
             todo.isDone,
-            todo.dueDate,
+            todo.dueTime,
           );
         };
         const handleToggleIsDone = (
@@ -77,7 +77,7 @@ function TaskList({
             todo.id,
             todo.content,
             event.currentTarget.checked,
-            todo.dueDate,
+            todo.dueTime,
           );
         };
 
@@ -139,7 +139,7 @@ type TodoAction =
       editId: number;
       newContent: string;
       isDone: boolean;
-      dueDate: Date | null;
+      dueTime: Date | null;
     };
 
 function todosReducer(currentTodos: Todo[], action: TodoAction) {
@@ -155,7 +155,7 @@ function todosReducer(currentTodos: Todo[], action: TodoAction) {
               ...todo,
               content: action.newContent,
               isDone: action.isDone,
-              dueDate: action.dueDate,
+              dueTime: action.dueTime,
             }
           : todo,
       );
@@ -181,7 +181,7 @@ export default function TodoList() {
       id: -Date.now(),
       content: taskContent,
       isDone: false,
-      dueDate: null,
+      dueTime: null,
     };
 
     updateOptimisticTodos({ type: "add", todo: tempTodo });
@@ -213,7 +213,7 @@ export default function TodoList() {
     id: number,
     newContent: string,
     isDone: boolean,
-    dueDate: Date | null,
+    dueTime: Date | null,
   ) => {
     startTransition(async () => {
       updateOptimisticTodos({
@@ -221,9 +221,9 @@ export default function TodoList() {
         editId: id,
         newContent,
         isDone,
-        dueDate,
+        dueTime,
       });
-      const result = await editTodo(todos, id, newContent, isDone, dueDate);
+      const result = await editTodo(todos, id, newContent, isDone, dueTime);
       setTodos(result.todos);
       setEditingId(null);
     });
