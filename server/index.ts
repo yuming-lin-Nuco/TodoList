@@ -41,11 +41,12 @@ async function getTodoListFromDB() {
   }
 }
 
-async function saveTodoToDB(newTask: string) {
+async function addTodoToDB(newTask: string, dueTime: Date) {
   try {
     await prisma.todo.create({
       data: {
         content: newTask,
+        dueTime: dueTime,
       },
     });
   } catch (error: unknown) {
@@ -117,7 +118,7 @@ app.get("/api/todos", async (req, res) => {
 
 // POST API：タスクを追加し、データベースに保存する
 app.post("/api/todos", async (req, res) => {
-  const { taskContent } = req.body;
+  const { taskContent, dueTime } = req.body;
   if (
     !taskContent ||
     typeof taskContent !== "string" ||
@@ -125,15 +126,13 @@ app.post("/api/todos", async (req, res) => {
   ) {
     return res.status(400).json({ error: "Invalid taskContent content" });
   }
-  await saveTodoToDB(taskContent);
+  await addTodoToDB(taskContent, dueTime);
   const currentTodoList = await getTodoListFromDB();
   res.status(201).json(currentTodoList);
 });
 
 // DELETE API：データベースからタスクリストを取得する
 app.delete("/api/todos/:id", async (req, res) => {
-  console.log("===== DELETE API START =====");
-  console.log("DELETE ID:", req.params.id);
   const todoId = Number(req.params.id); //req.params の戻り値は string なので数値に変換します
   await delTodoFromDB(todoId);
   const currentTodoList = await getTodoListFromDB();

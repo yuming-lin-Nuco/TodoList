@@ -20,6 +20,11 @@ function TodoInput({
         placeholder="タスクを入力する"
         name="task"
       />
+      <input
+        type="datetime-local"
+        name="dueTime"
+        className="border border-gray-300 px-2 py-1.5 rounded-sm text-sm text-gray-600"
+      />
       <button
         className="border border-gray-300 px-2 py-1.5 rounded-sm active:scale-95"
         type="submit"
