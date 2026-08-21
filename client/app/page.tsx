@@ -178,6 +178,8 @@ export default function TodoList() {
 
   const handleAdd = async (formData: FormData) => {
     const taskContent = formData.get("task")?.toString() ?? "";
+    const taskDueTimeString = formData.get("dueTime")?.toString();
+    const taskDueTime = taskDueTimeString ? new Date(taskDueTimeString) : null;
 
     // サーバーがまだ本物の ID を発行していないため、楽観的な更新に使うために、一時的な仮の ID を作る
     // Date.now() は「1970年からの経過ミリ秒数」を返す大きな正の数値なので、
@@ -186,7 +188,7 @@ export default function TodoList() {
       id: -Date.now(),
       content: taskContent,
       isDone: false,
-      dueTime: null,
+      dueTime: taskDueTime,
     };
 
     updateOptimisticTodos({ type: "add", todo: tempTodo });

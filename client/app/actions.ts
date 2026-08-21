@@ -16,11 +16,13 @@ export async function addTodo(
   data: FormData,
 ): Promise<TodoState> {
   const newTask: string = data.get("task")?.toString() || "";
+  const taskDueTimeString = data.get("dueTime")?.toString();
+  const taskDueTime = taskDueTimeString ? new Date(taskDueTimeString) : null;
 
   if (newTask.trim() === "") {
     return {
       todos: prevTodos,
-      error: "Task cannot be empty.",
+      error: "Task content cannot be empty.",
     };
   }
 
@@ -30,7 +32,7 @@ export async function addTodo(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ taskContent: newTask }),
+      body: JSON.stringify({ taskContent: newTask, dueTime: taskDueTime }),
     });
 
     if (!response.ok) {

@@ -5,7 +5,7 @@ interface Todo {
   id: number;
   content: string;
   isDone: boolean;
-  dueDate: Date | null;
+  dueTime: Date | null;
 }
 // describe(標題字串, 函式)：分組容器，裡面可以放很多個 it(...)，把「同一功能的相關測試」歸類在一起
 // 標題字串: 這組測試(或這個測試案例)的名稱
@@ -23,6 +23,6 @@ describe("addTodo", () => {
     const result = await addTodo(prevTodo, formData);
 
     // Assert: 驗證結果符合預期
-    expect(result.error).toBe("Task cannot be empty.");
+    expect(result.error).toBe("Task content cannot be empty.");
   });
 });
